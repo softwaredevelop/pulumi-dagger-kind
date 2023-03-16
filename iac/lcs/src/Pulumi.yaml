@@ -1,0 +1,3 @@
+name: iac
+runtime: go
+description: A minimal local source Go Pulumi program
