@@ -7,6 +7,7 @@ import (
 	"context"
 	"log"
 	"os"
+	"path/filepath"
 
 	"dagger.io/dagger"
 )
@@ -31,7 +32,8 @@ func main() {
 		panic(err)
 	}
 
-	p, err := util.HostDirectoryPath("..")
+	dir, _ := os.Getwd()
+	p := filepath.Join(dir, "..")
 	if err != nil {
 		panic(err)
 	}
