@@ -4,6 +4,7 @@ package main
 import (
 	"context"
 	"log"
+	"os"
 
 	"github.com/pulumi/pulumi-command/sdk/go/command/local"
 	"github.com/pulumi/pulumi/sdk/v3/go/auto"
@@ -18,7 +19,8 @@ func main() {
 	ctx := context.Background()
 
 	stackName := "ils"
-	desc := "A minimal inline source Go Pulumi program"
+	projectName := "iac"
+	desc := "A inline source Go Pulumi program"
 	_, err := auto.NewLocalWorkspace(ctx, auto.Project(workspace.Project{
 		Name:        "iac",
 		Runtime:     workspace.NewProjectRuntimeInfo("go", nil),
@@ -28,16 +30,21 @@ func main() {
 		panic(err)
 	}
 
-	stack, _ := auto.NewStackInlineSource(ctx, stackName, "iac", func(pCtx *pulumi.Context) error {
+	stack, err := auto.NewStackInlineSource(ctx, stackName, projectName, func(ctx *pulumi.Context) error {
 		return nil
-	}, auto.EnvVars(map[string]string{
-		"PULUMI_CONFIG_PASSPHRASE": "",
-		"PULUMI_SKIP_UPDATE_CHECK": "true",
-	}))
+	})
 	if err != nil && auto.IsCreateStack409Error(err) {
 		log.Println("stack " + stackName + " already exists")
 	}
 	if err != nil && !auto.IsCreateStack409Error(err) {
+		panic(err)
+	}
+
+	err = stack.Workspace().SetEnvVars(map[string]string{
+		"PULUMI_CONFIG_PASSPHRASE": "",
+		"PULUMI_SKIP_UPDATE_CHECK": "true",
+	})
+	if err != nil {
 		panic(err)
 	}
 
@@ -46,8 +53,30 @@ func main() {
 		panic(err)
 	}
 
+	contains := false
 	for _, s := range ss {
-		log.Println(s.Name)
+		if s.Name == stackName {
+			contains = true
+		}
+	}
+	if !contains {
+		panic(stackName + "stack not found")
+	}
+
+	ght := os.Getenv("GITHUB:TOKEN")
+	gho := os.Getenv("GITHUB:OWNER")
+	err = stack.SetAllConfig(ctx, auto.ConfigMap{
+		"github:token": auto.ConfigValue{
+			Value:  ght,
+			Secret: true,
+		},
+		"github:owner": auto.ConfigValue{
+			Value:  gho,
+			Secret: true,
+		},
+	})
+	if err != nil {
+		panic(err)
 	}
 
 	stack.Workspace().SetProgram(func(pCtx *pulumi.Context) error {
