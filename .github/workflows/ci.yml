@@ -34,9 +34,9 @@ jobs:
           fetch-depth: 0
 
       - name: Setup Go latest
-        uses: actions/setup-go@v3
+        uses: actions/setup-go@v4
         with:
-          go-version: latest
+          go-version: stable
 
       - name: Download dependencies
         run: go mod download
