@@ -58,7 +58,8 @@ func main() {
 	al, err := lint.Al(c, id).
 		Pipeline("actionlint").
 		WithWorkdir(mountedDir).
-		WithExec([]string{"actionlint", "-pyflakes=", "-verbose", ".github/workflows/dagger.yml"}).
+		WithExec([]string{"actionlint", "-pyflakes=", "-verbose", ".github/workflows/ci.yml"}).
+		WithExec([]string{"actionlint", "-pyflakes=", "-verbose", ".github/workflows/iac.yml"}).
 		Stdout(ctx)
 	if err != nil {
 		panic(err)
