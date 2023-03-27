@@ -2,7 +2,6 @@
 package main
 
 import (
-	"ci/util"
 	"context"
 	"os"
 	"path/filepath"
@@ -40,7 +39,7 @@ func main() {
 	}
 
 	mountedDir := "/mountedtmp"
-	id, err = util.MountedHostDirectory(c, id, p, mountedDir).
+	id, err = MountedHostDirectory(c, id, p, mountedDir).
 		ID(ctx)
 	if err != nil {
 		panic(err)
