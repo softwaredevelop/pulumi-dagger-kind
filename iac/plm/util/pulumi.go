@@ -1,5 +1,5 @@
 //revive:disable:package-comments,exported
-package main
+package util
 
 import (
 	"runtime"

@@ -5,6 +5,7 @@ import (
 	"context"
 	"os"
 	"path/filepath"
+	"plm/util"
 
 	"dagger.io/dagger"
 )
@@ -39,7 +40,7 @@ func main() {
 	}
 
 	mountedDir := "/mountedtmp"
-	id, err = MountedHostDirectory(c, id, p, mountedDir).
+	id, err = util.MountedHostDirectory(c, id, p, mountedDir).
 		ID(ctx)
 	if err != nil {
 		panic(err)
@@ -48,7 +49,7 @@ func main() {
 	pat := os.Getenv("PULUMI_ACCESS_TOKEN")
 	ght := os.Getenv("GITHUB_TOKEN")
 	gho := os.Getenv("GITHUB_OWNER")
-	id, err = PulumiInstall(c, id).
+	id, err = util.PulumiInstall(c, id).
 		Pipeline("pulumi").
 		WithWorkdir(mountedDir).
 		WithEnvVariable("PULUMI_SKIP_UPDATE_CHECK", "true").
