@@ -47,61 +47,37 @@ func main() {
 		panic(err)
 	}
 
-	stackA, err := auto.UpsertStackInlineSource(ctx, stackNameA, prj.Name.String(), func(ctx *pulumi.Context) error {
+	stackA, err := auto.NewStackInlineSource(ctx, stackNameA, prj.Name.String(), func(ctx *pulumi.Context) error {
 		return nil
 	})
-	if err != nil {
-		panic(err)
+	if err != nil && auto.IsCreateStack409Error(err) {
+		log.Println("stack " + stackNameA + " already exists")
+		stackA, err = auto.UpsertStackInlineSource(ctx, stackNameA, prj.Name.String(), func(ctx *pulumi.Context) error {
+			return nil
+		})
+		if err != nil {
+			panic(err)
+		}
 	}
-	// stack, err := auto.NewStackInlineSource(ctx, stackNameA, prj.Name.String(), func(ctx *pulumi.Context) error {
-	// 	return nil
-	// })
-	// if err != nil && auto.IsCreateStack409Error(err) {
-	// 	log.Println("stack " + stackNameA + " already exists")
-	// 	stack, err = auto.UpsertStackInlineSource(ctx, stackNameA, prj.Name.String(), func(ctx *pulumi.Context) error {
-	// 		return nil
-	// 	})
-	// 	if err != nil {
-	// 		panic(err)
-	// 	}
-	// }
 	if err != nil && !auto.IsCreateStack409Error(err) {
 		panic(err)
 	}
 
-	stackB, err := auto.UpsertStackInlineSource(ctx, stackNameB, prj.Name.String(), func(ctx *pulumi.Context) error {
+	stackB, err := auto.NewStackInlineSource(ctx, stackNameB, prj.Name.String(), func(ctx *pulumi.Context) error {
 		return nil
 	})
-	if err != nil {
-		panic(err)
+	if err != nil && auto.IsCreateStack409Error(err) {
+		log.Println("stack " + stackNameB + " already exists")
+		stackB, err = auto.UpsertStackInlineSource(ctx, stackNameB, prj.Name.String(), func(ctx *pulumi.Context) error {
+			return nil
+		})
+		if err != nil {
+			panic(err)
+		}
 	}
-	// stack, err = auto.NewStackInlineSource(ctx, stackNameB, prj.Name.String(), func(ctx *pulumi.Context) error {
-	// 	return nil
-	// })
-	// if err != nil && auto.IsCreateStack409Error(err) {
-	// 	log.Println("stack " + stackNameB + " already exists")
-	// 	stack, err = auto.UpsertStackInlineSource(ctx, stackNameB, prj.Name.String(), func(ctx *pulumi.Context) error {
-	// 		return nil
-	// 	})
-	// 	if err != nil {
-	// 		panic(err)
-	// 	}
-	// }
 	if err != nil && !auto.IsCreateStack409Error(err) {
 		panic(err)
 	}
-
-	// args := os.Args[1:]
-	// if len(args) > 0 {
-	// 	if args[0] == "destroy" {
-	// 		drst, err := stack.Destroy(ctx, optdestroy.Message("Successfully destroyed stack :"+stackName))
-	// 		if err != nil {
-	// 			panic(err)
-	// 		}
-	// 		log.Println(drst.Summary.Kind + " " + drst.Summary.Message)
-	// 		return
-	// 	}
-	// }
 
 	pat := os.Getenv("PULUMI_ACCESS_TOKEN")
 	err = stackA.Workspace().SetEnvVars(map[string]string{
@@ -153,8 +129,6 @@ func main() {
 		panic(err)
 	}
 
-	// ght = os.Getenv("GITHUB_TOKEN")
-	// gho = os.Getenv("GITHUB_OWNER")
 	err = stackB.SetAllConfig(ctx, auto.ConfigMap{
 		"github:token": auto.ConfigValue{
 			Value:  ght,
@@ -185,14 +159,6 @@ func main() {
 
 		return
 	}
-
-	// if destroy {
-	// 	drst, err := stackA.Destroy(ctx, optdestroy.Message("Successfully destroyed stack :"+stackNameA))
-	// 	if err != nil {
-	// 		panic(err)
-	// 	}
-	// 	log.Println(drst.Summary.Kind + " " + drst.Summary.Message)
-	// }
 
 	stackA.Workspace().SetProgram(func(pCtx *pulumi.Context) error {
 
@@ -252,29 +218,6 @@ func main() {
 	}
 	log.Println(up.StdOut)
 
-	// if destroy {
-	// 	drst, err := stack.Destroy(ctx, optdestroy.Message("Successfully destroyed stack :"+stackNameA))
-	// 	if err != nil {
-	// 		panic(err)
-	// 	}
-	// 	log.Println(drst.Summary.Kind + " " + drst.Summary.Message)
-	// }
-
-	// ss, err := stackB.Workspace().ListStacks(ctx)
-	// if err != nil {
-	// 	panic(err)
-	// }
-
-	// contains := false
-	// for _, s := range ss {
-	// 	if s.Name == stackNameB {
-	// 		contains = true
-	// 	}
-	// }
-	// if !contains {
-	// 	panic(stackNameB + "stack not found")
-	// }
-
 	stackB.Workspace().SetProgram(func(pCtx *pulumi.Context) error {
 
 		_, err = github.GetActionsPublicKey(pCtx, &github.GetActionsPublicKeyArgs{
@@ -284,9 +227,17 @@ func main() {
 			return err
 		}
 
-		_, err = github.NewActionsSecret(pCtx, "newActionsSecret", &github.ActionsSecretArgs{
+		_, err = github.NewActionsSecret(pCtx, "newActionsSecretPAT", &github.ActionsSecretArgs{
 			Repository: pulumi.String("pulumi-dagger-gh"),
 			SecretName: pulumi.String("PULUMI_ACCESS_TOKEN"),
+		})
+		if err != nil {
+			return err
+		}
+
+		_, err = github.NewActionsSecret(pCtx, "newActionsSecretPON", &github.ActionsSecretArgs{
+			Repository: pulumi.String("pulumi-dagger-gh"),
+			SecretName: pulumi.String("PULUMI_ORG_NAME"),
 		})
 		if err != nil {
 			return err
