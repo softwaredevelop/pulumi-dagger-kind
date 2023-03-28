@@ -1,0 +1,60 @@
+---
+name: Infrastructure
+
+on:
+  push:
+    branches:
+      - "main"
+    paths:
+      - "iac/**"
+  pull_request:
+    branches:
+      - "main"
+    paths:
+      - "iac/**"
+
+concurrency:
+  group: ${{ github.ref }}-${{ github.workflow }}
+  cancel-in-progress: true
+
+jobs:
+  skip-duplicate-actions:
+    name: Skip Duplicate Actions
+    runs-on: ubuntu-latest
+    steps:
+      - uses: fkirc/skip-duplicate-actions@master
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          cancel_others: true
+          concurrent_skipping: never
+
+  go:
+    name: Setup Infrastructure
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Setup Go latest
+        uses: actions/setup-go@v4
+        with:
+          go-version: stable
+
+      - name: Download dependencies
+        run: go mod download
+        working-directory: iac/ils
+
+      - name: Download dependencies
+        run: go mod download
+        working-directory: iac/plm
+
+      - name: Run Infrastructure as inline code
+        run: go run -v .
+        env:
+          PULUMI_ACCESS_TOKEN: ${{ secrets.PULUMI_ACCESS_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_OWNER: ${{ github.repository_owner }}
+        if: ${{ github.event_name == 'pull_request' || contains(github.event.head_commit.modified, 'iac/plm/**/*.go') || contains(github.event.head_commit.modified, 'iac/plm/util/**/.go') }}
+        working-directory: iac/plm
