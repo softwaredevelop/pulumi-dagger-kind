@@ -63,20 +63,6 @@ func main() {
 		panic(err)
 	}
 
-	// args := os.Args[1:]
-	// if len(args) > 0 {
-	// 	if args[0] == "destroy" {
-	// 		_, err = c.Container(dagger.ContainerOpts{ID: id}).
-	// 			Pipeline("pulumi-inline-source3").
-	// 			WithWorkdir(mountedDir).
-	// 			WithExec([]string{"go", "run", "-v", "inline.go", "destroy"}).
-	// 			Stdout(ctx)
-	// 		if err != nil {
-	// 			panic(err)
-	// 		}
-	// 	}
-	// }
-
 	_, err = c.Container(dagger.ContainerOpts{ID: id}).
 		Pipeline("pulumi-inline-source2").
 		WithWorkdir(mountedDir).

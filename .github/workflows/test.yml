@@ -5,9 +5,13 @@ on:
   push:
     branches:
       - "main"
+    paths:
+      - "**_test.go"
   pull_request:
     branches:
       - "main"
+    paths:
+      - "**_test.go"
 
 concurrency:
   group: ${{ github.ref }}-${{ github.workflow }}
