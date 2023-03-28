@@ -50,11 +50,7 @@ jobs:
   test-iac:
     name: Test IaC
     runs-on: ubuntu-latest
-    env:
-      PULUMI_ACCESS_TOKEN: ${{ secrets.PULUMI_ACCESS_TOKEN }}
-      PULUMI_ORG_NAME: ${{ secrets.PULUMI_ORG_NAME }}
-      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      GITHUB_OWNER: ${{ github.repository_owner }}
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -84,5 +80,10 @@ jobs:
 
       - name: Run tests
         run: go test -v ./...
+        env:
+          PULUMI_ACCESS_TOKEN: ${{ secrets.PULUMI_ACCESS_TOKEN }}
+          PULUMI_ORG_NAME: ${{ secrets.PULUMI_ORG_NAME }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_OWNER: ${{ github.repository_owner }}
         if: ${{ github.event_name == 'pull_request' || contains(github.event.head_commit.modified, 'iac/plm/**/*_test.go') || contains(github.event.head_commit.modified, 'iac/plm/util/**/*_test.go') }}
         working-directory: iac/plm
