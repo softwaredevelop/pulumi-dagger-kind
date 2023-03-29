@@ -30,6 +30,7 @@ jobs:
 
   test-ci:
     name: Test CI
+    if: ${{ github.event_name == 'pull_request' || contains(github.event.head_commit.modified, 'ci/**/*_test.go') }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -48,11 +49,11 @@ jobs:
 
       - name: Run tests
         run: go test -v ./...
-        if: ${{ github.event_name == 'pull_request' || contains(github.event.head_commit.modified, 'ci/**/*_test.go') }}
         working-directory: ci
 
   test-iac:
     name: Test IaC
+    if: ${{ github.event_name == 'pull_request' || contains(github.event.head_commit.modified, 'iac/plm/**/*_test.go') || contains(github.event.head_commit.modified, 'iac/plm/util/**/*_test.go') }}
     runs-on: ubuntu-latest
 
     steps:
@@ -89,5 +90,37 @@ jobs:
           PULUMI_ORG_NAME: ${{ secrets.PULUMI_ORG_NAME }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITHUB_OWNER: ${{ github.repository_owner }}
-        if: ${{ github.event_name == 'pull_request' || contains(github.event.head_commit.modified, 'iac/plm/**/*_test.go') || contains(github.event.head_commit.modified, 'iac/plm/util/**/*_test.go') }}
         working-directory: iac/plm
+
+  test-kind:
+    name: Test kind
+    if: ${{ github.event_name == 'pull_request' || contains(github.event.head_commit.modified, 'kind/**/*_test.go') }}
+    runs-on: ubuntu-latest
+    env:
+      PULUMI_SKIP_UPDATE_CHECK: "true"
+      PULUMI_CONFIG_PASSPHRASE: ""
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Setup Go latest
+        uses: actions/setup-go@v4
+        with:
+          go-version: stable
+
+      - name: Download dependencies
+        run: |
+          go get -u ./...
+          go mod download
+        working-directory: iac/kind
+
+      - name: Pulumi login
+        run: pulumi login --local
+        working-directory: iac/kind
+
+      - name: Run tests
+        run: go test -v -run TestInlineSourceKindCommand$
+        working-directory: iac/kind
