@@ -1,0 +1,26 @@
+---
+version: 2
+updates:
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "friday"
+      time: "00:00"
+      timezone: "Europe/London"
+    commit-message:
+      prefix: "[github-actions ]"
+    labels:
+      - "github-actions dependencies"
+
+  - package-ecosystem: "gomod"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "friday"
+      time: "00:00"
+      timezone: "Europe/London"
+    commit-message:
+      prefix: "[go modules ]"
+    labels:
+      - "go modules"
