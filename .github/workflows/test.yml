@@ -21,6 +21,7 @@ jobs:
   skip-duplicate-actions:
     name: Skip Duplicate Actions
     runs-on: ubuntu-latest
+
     steps:
       - uses: fkirc/skip-duplicate-actions@master
         with:
@@ -32,6 +33,7 @@ jobs:
     name: Test CI
     if: ${{ github.event_name == 'pull_request' || contains(github.event.head_commit.modified, 'ci/**/*_test.go') }}
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
