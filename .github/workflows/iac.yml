@@ -21,6 +21,7 @@ jobs:
   skip-duplicate-actions:
     name: Skip Duplicate Actions
     runs-on: ubuntu-latest
+
     steps:
       - uses: fkirc/skip-duplicate-actions@master
         with:
@@ -28,9 +29,11 @@ jobs:
           cancel_others: true
           concurrent_skipping: never
 
-  go:
+  iac:
     name: Setup Infrastructure
+    if: ${{ github.event_name == 'pull_request' || contains(github.event.head_commit.modified, 'iac/plm/**/*.go') || contains(github.event.head_commit.modified, 'iac/plm/util/**/.go') }}
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -43,11 +46,9 @@ jobs:
           go-version: stable
 
       - name: Download dependencies
-        run: go mod download
-        working-directory: iac/ils
-
-      - name: Download dependencies
-        run: go mod download
+        run: |
+          go get -u ./...
+          go mod download
         working-directory: iac/plm
 
       - name: Run Infrastructure as inline code
@@ -56,5 +57,4 @@ jobs:
           PULUMI_ACCESS_TOKEN: ${{ secrets.PULUMI_ACCESS_TOKEN }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITHUB_OWNER: ${{ github.repository_owner }}
-        if: ${{ github.event_name == 'pull_request' || contains(github.event.head_commit.modified, 'iac/plm/**/*.go') || contains(github.event.head_commit.modified, 'iac/plm/util/**/.go') }}
         working-directory: iac/plm

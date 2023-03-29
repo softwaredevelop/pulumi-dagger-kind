@@ -1,12 +1,12 @@
-module ils
+module repo
 
 go 1.20
 
 require (
 	github.com/pulumi/pulumi-command/sdk v0.7.1
 	github.com/pulumi/pulumi-github/sdk/v5 v5.6.0
-	github.com/pulumi/pulumi/sdk/v3 v3.59.1
-	github.com/stretchr/testify v1.8.1
+	github.com/pulumi/pulumi/sdk/v3 v3.60.0
+	github.com/stretchr/testify v1.8.2
 )
 
 require (
@@ -65,7 +65,7 @@ require (
 	golang.org/x/term v0.6.0 // indirect
 	golang.org/x/text v0.8.0 // indirect
 	golang.org/x/tools v0.7.0 // indirect
-	google.golang.org/genproto v0.0.0-20230327152035-dc694ad2151e // indirect
+	google.golang.org/genproto v0.0.0-20230327215041-6ac7f18bb9d5 // indirect
 	google.golang.org/grpc v1.54.0 // indirect
 	google.golang.org/protobuf v1.30.0 // indirect
 	gopkg.in/tomb.v1 v1.0.0-20141024135613-dd632973f1e7 // indirect

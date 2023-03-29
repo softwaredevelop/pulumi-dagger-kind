@@ -41,7 +41,9 @@ jobs:
           go-version: stable
 
       - name: Download dependencies
-        run: go mod download
+        run: |
+          go get -u ./...
+          go mod download
         working-directory: ci
 
       - name: Run linters
