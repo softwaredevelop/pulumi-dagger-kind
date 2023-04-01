@@ -66,3 +66,17 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITHUB_OWNER: ${{ github.repository_owner }}
         working-directory: iac/plm
+
+      - name: Download dependencies
+        run: |
+          go get -u ./...
+          go mod download
+        working-directory: iac/kind
+
+      - name: Pulumi login
+        run: pulumi login --local
+        working-directory: iac/kind
+
+      - name: Run kind
+        run: go run -v .
+        working-directory: iac/kind
