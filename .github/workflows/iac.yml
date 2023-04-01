@@ -7,11 +7,13 @@ on:
       - "main"
     paths:
       - "iac/**"
+      - "!**test.go"
   pull_request:
     branches:
       - "main"
     paths:
       - "iac/**"
+      - "!**test.go"
 
 concurrency:
   group: ${{ github.ref }}-${{ github.workflow }}
