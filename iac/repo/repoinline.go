@@ -8,10 +8,7 @@ import (
 
 	"github.com/pulumi/pulumi-github/sdk/v5/go/github"
 	"github.com/pulumi/pulumi/sdk/v3/go/auto"
-	"github.com/pulumi/pulumi/sdk/v3/go/auto/debug"
 	"github.com/pulumi/pulumi/sdk/v3/go/auto/optdestroy"
-	"github.com/pulumi/pulumi/sdk/v3/go/auto/optpreview"
-	"github.com/pulumi/pulumi/sdk/v3/go/auto/optup"
 	"github.com/pulumi/pulumi/sdk/v3/go/common/tokens"
 	"github.com/pulumi/pulumi/sdk/v3/go/common/workspace"
 	"github.com/pulumi/pulumi/sdk/v3/go/pulumi"
@@ -29,10 +26,10 @@ func main() {
 
 	ctx := context.Background()
 
-	projectName := "iac"
-	stackNameA := "ilsA"
-	stackNameB := "ilsB"
-	desc := "A inline source Go Pulumi program Test"
+	projectName := "thesis"
+	stackNameA := "repoinlineA"
+	stackNameB := "repoinlineB"
+	desc := "A inline source Go Pulumi program for repository creation in thesis project."
 	ws, err := auto.NewLocalWorkspace(ctx, auto.Project(workspace.Project{
 		Name:        tokens.PackageName(projectName),
 		Runtime:     workspace.NewProjectRuntimeInfo("go", nil),
@@ -82,7 +79,6 @@ func main() {
 	pat := os.Getenv("PULUMI_ACCESS_TOKEN")
 	err = stackA.Workspace().SetEnvVars(map[string]string{
 		"PULUMI_SKIP_UPDATE_CHECK": "true",
-		"PULUMI_CONFIG_PASSPHRASE": "",
 		"PULUMI_ACCESS_TOKEN":      pat,
 	})
 	if err != nil {
@@ -91,7 +87,6 @@ func main() {
 
 	err = stackB.Workspace().SetEnvVars(map[string]string{
 		"PULUMI_SKIP_UPDATE_CHECK": "true",
-		"PULUMI_CONFIG_PASSPHRASE": "",
 		"PULUMI_ACCESS_TOKEN":      pat,
 	})
 	if err != nil {
@@ -147,15 +142,21 @@ func main() {
 
 	stackA.Workspace().SetProgram(func(pCtx *pulumi.Context) error {
 
-		repositoryName := "pulumi-dagger-gh"
+		repositoryName := "pulumi-dagger-kind"
 		repository, err := github.NewRepository(pCtx, "newRepository", &github.RepositoryArgs{
 			DeleteBranchOnMerge: pulumi.Bool(true),
-			Description:         pulumi.String("This is a test repository for Pulumi repository creation with Dagger CI/CD"),
+			Description:         pulumi.String("This is a repository for Pulumi repository creation with Dagger CI/CD for kind"),
 			HasIssues:           pulumi.Bool(true),
 			HasProjects:         pulumi.Bool(true),
 			Name:                pulumi.String(repositoryName),
-			Topics:              pulumi.StringArray{pulumi.String("pulumi"), pulumi.String("dagger"), pulumi.String("github"), pulumi.String("test")},
-			Visibility:          pulumi.String("public"),
+			Topics: pulumi.StringArray{
+				pulumi.String("pulumi"),
+				pulumi.String("dagger"),
+				pulumi.String("github"),
+				pulumi.String("kind"),
+				pulumi.String("kind-cluster"),
+			},
+			Visibility: pulumi.String("public"),
 		})
 		if err != nil {
 			return err
@@ -180,6 +181,16 @@ func main() {
 			return err
 		}
 
+		_, err = github.NewIssueLabel(pCtx, "newIssueLabelGoModules", &github.IssueLabelArgs{
+			Color:       pulumi.String("9BE688"),
+			Description: pulumi.String("This issue is related to Go modules"),
+			Name:        pulumi.String("go-modules dependencies"),
+			Repository:  repository.Name,
+		})
+		if err != nil {
+			return err
+		}
+
 		pCtx.Export("repository", repository.Name)
 		pCtx.Export("repositoryUrl", repository.HtmlUrl)
 
@@ -187,33 +198,39 @@ func main() {
 
 	})
 
-	prev, err := stackA.Preview(ctx, optpreview.Message("Preview stack "+stackNameA), optpreview.DebugLogging(debug.LoggingOptions{
-		Debug: true,
-	}))
-	if err != nil {
-		panic(err)
-	}
-	log.Println(prev.StdOut)
+	// prev, err := stackA.Preview(ctx, optpreview.Message("Preview stack "+stackNameA), optpreview.DebugLogging(debug.LoggingOptions{
+	// 	Debug: true,
+	// }))
+	// if err != nil {
+	// 	panic(err)
+	// }
+	// log.Println(prev.StdOut)
 
-	up, err := stackA.Up(ctx, optup.Message("Update stack "+stackNameA), optup.DebugLogging(debug.LoggingOptions{
-		Debug: true,
-	}))
-	if err != nil {
-		panic(err)
-	}
-	log.Println(up.StdOut)
+	// refr, err := stackA.Refresh(ctx, optrefresh.Message("Refresh stack "+stackNameA), optrefresh.ProgressStreams(os.Stdout, os.Stderr))
+	// if err != nil {
+	// 	panic(err)
+	// }
+	// log.Println(refr.StdOut)
+
+	// up, err := stackA.Up(ctx, optup.Message("Update stack "+stackNameA), optup.DebugLogging(debug.LoggingOptions{
+	// 	Debug: true,
+	// }))
+	// if err != nil {
+	// 	panic(err)
+	// }
+	// log.Println(up.StdOut)
 
 	stackB.Workspace().SetProgram(func(pCtx *pulumi.Context) error {
 
 		_, err = github.GetActionsPublicKey(pCtx, &github.GetActionsPublicKeyArgs{
-			Repository: "pulumi-dagger-gh",
+			Repository: "pulumi-dagger-kind",
 		}, nil)
 		if err != nil {
 			return err
 		}
 
 		_, err = github.NewActionsSecret(pCtx, "newActionsSecretPAT", &github.ActionsSecretArgs{
-			Repository: pulumi.String("pulumi-dagger-gh"),
+			Repository: pulumi.String("pulumi-dagger-kind"),
 			SecretName: pulumi.String("PULUMI_ACCESS_TOKEN"),
 		})
 		if err != nil {
@@ -221,7 +238,7 @@ func main() {
 		}
 
 		_, err = github.NewActionsSecret(pCtx, "newActionsSecretPON", &github.ActionsSecretArgs{
-			Repository: pulumi.String("pulumi-dagger-gh"),
+			Repository: pulumi.String("pulumi-dagger-kind"),
 			SecretName: pulumi.String("PULUMI_ORG_NAME"),
 		})
 		if err != nil {
@@ -239,12 +256,18 @@ func main() {
 	// }
 	// log.Println(prev.StdOut)
 
+	// refr, err = stackB.Refresh(ctx, optrefresh.Message("Refresh stack "+stackNameB), optrefresh.ProgressStreams(os.Stdout, os.Stderr))
+	// if err != nil {
+	// 	panic(err)
+	// }
+	// log.Println(refr.StdOut)
+
 	// up, err = stackB.Up(ctx, optup.Message("Update stack "+stackNameB), optup.DebugLogging(debug.LoggingOptions{
 	// 	Debug: true,
 	// }))
 	// if err != nil {
 	// 	panic(err)
 	// }
-	log.Println(up.StdOut)
+	// log.Println(up.StdOut)
 
 }
