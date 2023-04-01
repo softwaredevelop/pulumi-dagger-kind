@@ -26,7 +26,8 @@ func TestInlineSourceKindCommand(t *testing.T) {
 	ctx := context.Background()
 
 	projectName := "kindtestproject"
-	stackName := "testKindCommand"
+	stackNameA := "testKindCommandA"
+	stackNameB := "testKindCommandB"
 	desc := "A inline source Go Pulumi program for test kind"
 	ws, err := auto.NewLocalWorkspace(ctx, auto.Project(workspace.Project{
 		Name:        tokens.PackageName(projectName),
@@ -40,32 +41,57 @@ func TestInlineSourceKindCommand(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, prj)
 
-	s, err := auto.NewStackInlineSource(ctx, stackName, prj.Name.String(), func(ctx *pulumi.Context) error {
+	sA, err := auto.NewStackInlineSource(ctx, stackNameA, prj.Name.String(), func(ctx *pulumi.Context) error {
 		return nil
-	})
+	}, auto.EnvVars(map[string]string{
+		"PULUMI_SKIP_UPDATE_CHECK": "true",
+		"PULUMI_CONFIG_PASSPHRASE": "",
+	}))
 	if err != nil && auto.IsCreateStack409Error(err) {
-		log.Println("stack " + stackName + " already exists")
-		s, err = auto.UpsertStackInlineSource(ctx, stackName, prj.Name.String(), func(ctx *pulumi.Context) error {
+		log.Println("stack " + stackNameA + " already exists")
+		sA, err = auto.UpsertStackInlineSource(ctx, stackNameA, prj.Name.String(), func(ctx *pulumi.Context) error {
 			return nil
-		})
+		}, auto.EnvVars(map[string]string{
+			"PULUMI_SKIP_UPDATE_CHECK": "true",
+			"PULUMI_CONFIG_PASSPHRASE": "",
+		}))
 	}
 	require.NoError(t, err)
-	require.NotNil(t, s)
+	require.NotNil(t, sA)
+
+	sB, err := auto.NewStackInlineSource(ctx, stackNameB, prj.Name.String(), func(ctx *pulumi.Context) error {
+		return nil
+	}, auto.EnvVars(map[string]string{
+		"PULUMI_SKIP_UPDATE_CHECK": "true",
+		"PULUMI_CONFIG_PASSPHRASE": "",
+	}))
+	if err != nil && auto.IsCreateStack409Error(err) {
+		log.Println("stack " + stackNameB + " already exists")
+		sB, err = auto.UpsertStackInlineSource(ctx, stackNameB, prj.Name.String(), func(ctx *pulumi.Context) error {
+			return nil
+		}, auto.EnvVars(map[string]string{
+			"PULUMI_SKIP_UPDATE_CHECK": "true",
+			"PULUMI_CONFIG_PASSPHRASE": "",
+		}))
+	}
+	require.NoError(t, err)
+	require.NotNil(t, sA)
 
 	defer func() {
-		dr, err := s.Destroy(ctx, optdestroy.Message("Successfully destroyed stack :"+stackName))
+		drA, err := sA.Destroy(ctx, optdestroy.Message("Successfully destroyed stack :"+stackNameA))
 		require.NoError(t, err)
-		log.Println(dr.Summary.Kind + " " + dr.Summary.Message)
-		err = s.Workspace().RemoveStack(ctx, s.Name(), optremove.Force())
+		log.Println(drA.Summary.Kind + " " + drA.Summary.Message)
+		err = sA.Workspace().RemoveStack(ctx, sA.Name(), optremove.Force())
+		require.NoError(t, err)
+
+		drB, err := sB.Destroy(ctx, optdestroy.Message("Successfully destroyed stack :"+stackNameB))
+		require.NoError(t, err)
+		log.Println(drB.Summary.Kind + " " + drB.Summary.Message)
+		err = sB.Workspace().RemoveStack(ctx, sB.Name(), optremove.Force())
 		require.NoError(t, err)
 	}()
 
-	err = s.Workspace().SetEnvVars(map[string]string{
-		"PULUMI_SKIP_UPDATE_CHECK": "true",
-		"PULUMI_CONFIG_PASSPHRASE": "",
-	})
-
-	s.Workspace().SetProgram(func(pCtx *pulumi.Context) error {
+	sA.Workspace().SetProgram(func(pCtx *pulumi.Context) error {
 
 		kv, err := local.NewCommand(pCtx, "kind-version", &local.CommandArgs{
 			Create: pulumi.StringPtrInput(pulumi.String("kind version")),
@@ -73,38 +99,63 @@ func TestInlineSourceKindCommand(t *testing.T) {
 		require.NoError(t, err)
 		require.NotNil(t, kv)
 
-		clusterName := "testcluster"
+		clusterName := "testclusterkinda"
 		kc, err := local.NewCommand(pCtx, "kind-create", &local.CommandArgs{
 			Create: pulumi.StringPtrInput(pulumi.String("kind create cluster --name=" + clusterName)),
 		})
 		require.NoError(t, err)
 		require.NotNil(t, kc)
 
-		_, err = local.NewCommand(pCtx, "kind-delete", &local.CommandArgs{
-			Create: pulumi.StringPtrInput(pulumi.String("kind delete cluster --name=" + clusterName)),
-		})
-		require.NoError(t, err)
-
 		pCtx.Export("kindVersion", kv.Stdout)
-		pCtx.Export("kindClusterName", kc.Stdout)
 
 		return nil
 	})
 	require.NoError(t, err)
 
-	prev, err := s.Preview(ctx, optpreview.DebugLogging(debug.LoggingOptions{
+	sB.Workspace().SetProgram(func(pCtx *pulumi.Context) error {
+
+		clusterName := "testclusterkindb"
+		_, err = local.NewCommand(pCtx, "kind-delete", &local.CommandArgs{
+			Create: pulumi.StringPtrInput(pulumi.String("kind delete cluster --name=" + clusterName)),
+		})
+		require.NoError(t, err)
+
+		return nil
+	})
+	require.NoError(t, err)
+
+	prev, err := sA.Preview(ctx, optpreview.DebugLogging(debug.LoggingOptions{
 		Debug: true,
 	}))
 	require.NoError(t, err)
 	log.Println(prev.StdOut)
 
-	refr, err := s.Refresh(ctx, optrefresh.Message("Refresh stack "+stackName), optrefresh.ProgressStreams(os.Stdout, os.Stderr))
+	refr, err := sA.Refresh(ctx, optrefresh.Message("Refresh stack "+stackNameA), optrefresh.ProgressStreams(os.Stdout, os.Stderr))
 	if err != nil {
 		panic(err)
 	}
 	log.Println(refr.StdOut)
 
-	_, err = s.Up(ctx, optup.Message("Update stack "+stackName), optup.Option(
+	_, err = sA.Up(ctx, optup.Message("Update stack "+stackNameA), optup.Option(
+		optup.DebugLogging(debug.LoggingOptions{
+			Debug: true,
+		}),
+	))
+	require.NoError(t, err)
+
+	prev, err = sB.Preview(ctx, optpreview.DebugLogging(debug.LoggingOptions{
+		Debug: true,
+	}))
+	require.NoError(t, err)
+	log.Println(prev.StdOut)
+
+	refr, err = sB.Refresh(ctx, optrefresh.Message("Refresh stack "+stackNameB), optrefresh.ProgressStreams(os.Stdout, os.Stderr))
+	if err != nil {
+		panic(err)
+	}
+	log.Println(refr.StdOut)
+
+	_, err = sB.Up(ctx, optup.Message("Update stack "+stackNameB), optup.Option(
 		optup.DebugLogging(debug.LoggingOptions{
 			Debug: true,
 		}),
