@@ -1,3 +1,0 @@
-name: localproject
-runtime: go
-description: A local source Go Pulumi program

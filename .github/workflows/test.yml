@@ -75,18 +75,6 @@ jobs:
         run: |
           go get -u ./...
           go mod download
-        working-directory: iac/lcs
-
-      - name: Download dependencies
-        run: |
-          go get -u ./...
-          go mod download
-        working-directory: iac/lsh
-
-      - name: Download dependencies
-        run: |
-          go get -u ./...
-          go mod download
         working-directory: iac/plm
 
       - name: Run tests
