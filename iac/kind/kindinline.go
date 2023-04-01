@@ -31,7 +31,8 @@ func main() {
 	ctx := context.Background()
 
 	projectName := "thesis"
-	stackName := "kindCommand"
+	stackNameA := "kindCommandA"
+	stackNameB := "kindCommandB"
 	desc := "A inline source Go Pulumi program for kind in thesis project."
 	ws, err := auto.NewLocalWorkspace(ctx, auto.Project(workspace.Project{
 		Name:        tokens.PackageName(projectName),
@@ -47,15 +48,37 @@ func main() {
 		panic(err)
 	}
 
-	stack, err := auto.NewStackInlineSource(ctx, stackName, prj.Name.String(), func(ctx *pulumi.Context) error {
+	stackA, err := auto.NewStackInlineSource(ctx, stackNameA, prj.Name.String(), func(ctx *pulumi.Context) error {
 		return nil
 	}, auto.EnvVars(map[string]string{
 		"PULUMI_SKIP_UPDATE_CHECK": "true",
 		"PULUMI_CONFIG_PASSPHRASE": "",
 	}))
 	if err != nil && auto.IsCreateStack409Error(err) {
-		log.Println("stack " + stackName + " already exists")
-		stack, err = auto.UpsertStackInlineSource(ctx, stackName, prj.Name.String(), func(ctx *pulumi.Context) error {
+		log.Println("stack " + stackNameA + " already exists")
+		stackA, err = auto.UpsertStackInlineSource(ctx, stackNameA, prj.Name.String(), func(ctx *pulumi.Context) error {
+			return nil
+		}, auto.EnvVars(map[string]string{
+			"PULUMI_SKIP_UPDATE_CHECK": "true",
+			"PULUMI_CONFIG_PASSPHRASE": "",
+		}))
+		if err != nil {
+			panic(err)
+		}
+	}
+	if err != nil && !auto.IsCreateStack409Error(err) {
+		panic(err)
+	}
+
+	stackB, err := auto.NewStackInlineSource(ctx, stackNameB, prj.Name.String(), func(ctx *pulumi.Context) error {
+		return nil
+	}, auto.EnvVars(map[string]string{
+		"PULUMI_SKIP_UPDATE_CHECK": "true",
+		"PULUMI_CONFIG_PASSPHRASE": "",
+	}))
+	if err != nil && auto.IsCreateStack409Error(err) {
+		log.Println("stack " + stackNameB + " already exists")
+		stackA, err = auto.UpsertStackInlineSource(ctx, stackNameB, prj.Name.String(), func(ctx *pulumi.Context) error {
 			return nil
 		}, auto.EnvVars(map[string]string{
 			"PULUMI_SKIP_UPDATE_CHECK": "true",
@@ -71,16 +94,22 @@ func main() {
 
 	if destroy {
 
-		drst, err := stack.Destroy(ctx, optdestroy.Message("Successfully destroyed stack : "+stackName))
+		drstA, err := stackA.Destroy(ctx, optdestroy.Message("Successfully destroyed stack : "+stackNameA))
 		if err != nil {
 			panic(err)
 		}
-		log.Println(drst.Summary.Kind + " " + drst.Summary.Message)
+		log.Println(drstA.Summary.Kind + " " + drstA.Summary.Message)
+
+		drstB, err := stackB.Destroy(ctx, optdestroy.Message("Successfully destroyed stack : "+stackNameB))
+		if err != nil {
+			panic(err)
+		}
+		log.Println(drstB.Summary.Kind + " " + drstB.Summary.Message)
 
 		return
 	}
 
-	stack.Workspace().SetProgram(func(pCtx *pulumi.Context) error {
+	stackA.Workspace().SetProgram(func(pCtx *pulumi.Context) error {
 
 		kv, err := local.NewCommand(pCtx, "kind-version", &local.CommandArgs{
 			Create: pulumi.StringPtrInput(pulumi.String("kind version")),
@@ -90,13 +119,22 @@ func main() {
 		}
 
 		clusterName := "testcluster"
-		kc, err := local.NewCommand(pCtx, "kind-create", &local.CommandArgs{
+		_, err = local.NewCommand(pCtx, "kind-create", &local.CommandArgs{
 			Create: pulumi.StringPtrInput(pulumi.String("kind create cluster --name=" + clusterName)),
 		})
 		if err != nil {
 			return err
 		}
 
+		pCtx.Export("kindVersion", kv.Stdout)
+
+		return nil
+
+	})
+
+	stackB.Workspace().SetProgram(func(pCtx *pulumi.Context) error {
+
+		clusterName := "testcluster"
 		_, err = local.NewCommand(pCtx, "kind-delete", &local.CommandArgs{
 			Create: pulumi.StringPtrInput(pulumi.String("kind delete cluster --name=" + clusterName)),
 		})
@@ -104,14 +142,11 @@ func main() {
 			return err
 		}
 
-		pCtx.Export("kindVersion", kv.Stdout)
-		pCtx.Export("kindClusterName", kc.Stdout)
-
 		return nil
 
 	})
 
-	prev, err := stack.Preview(ctx, optpreview.Message("Preview stack "+stackName), optpreview.DebugLogging(debug.LoggingOptions{
+	prev, err := stackA.Preview(ctx, optpreview.Message("Preview stack "+stackNameA), optpreview.DebugLogging(debug.LoggingOptions{
 		Debug: true,
 	}))
 	if err != nil {
@@ -119,13 +154,35 @@ func main() {
 	}
 	log.Println(prev.StdOut)
 
-	refr, err := stack.Refresh(ctx, optrefresh.Message("Refresh stack "+stackName), optrefresh.ProgressStreams(os.Stdout, os.Stderr))
+	refr, err := stackA.Refresh(ctx, optrefresh.Message("Refresh stack "+stackNameA), optrefresh.ProgressStreams(os.Stdout, os.Stderr))
 	if err != nil {
 		panic(err)
 	}
 	log.Println(refr.StdOut)
 
-	up, err := stack.Up(ctx, optup.Message("Update stack "+stackName), optup.DebugLogging(debug.LoggingOptions{
+	up, err := stackA.Up(ctx, optup.Message("Update stack "+stackNameA), optup.DebugLogging(debug.LoggingOptions{
+		Debug: true,
+	}))
+	if err != nil {
+		panic(err)
+	}
+	log.Println(up.StdOut)
+
+	prev, err = stackB.Preview(ctx, optpreview.Message("Preview stack "+stackNameB), optpreview.DebugLogging(debug.LoggingOptions{
+		Debug: true,
+	}))
+	if err != nil {
+		panic(err)
+	}
+	log.Println(prev.StdOut)
+
+	refr, err = stackB.Refresh(ctx, optrefresh.Message("Refresh stack "+stackNameB), optrefresh.ProgressStreams(os.Stdout, os.Stderr))
+	if err != nil {
+		panic(err)
+	}
+	log.Println(refr.StdOut)
+
+	up, err = stackB.Up(ctx, optup.Message("Update stack "+stackNameB), optup.DebugLogging(debug.LoggingOptions{
 		Debug: true,
 	}))
 	if err != nil {
