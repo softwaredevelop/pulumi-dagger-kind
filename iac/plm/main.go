@@ -33,7 +33,7 @@ func main() {
 	}
 
 	dir, _ := os.Getwd()
-	p := filepath.Join(dir, "..", "ils")
+	p := filepath.Join(dir, "..", "repo")
 	// p := filepath.Join(dir, "..", "lcs")
 	if err != nil {
 		panic(err)
@@ -66,7 +66,7 @@ func main() {
 	_, err = c.Container(dagger.ContainerOpts{ID: id}).
 		Pipeline("pulumi-inline-source2").
 		WithWorkdir(mountedDir).
-		WithExec([]string{"go", "run", "-v", "inline.go"}).
+		WithExec([]string{"go", "run", "-v", "repoinline.go"}).
 		// WithExec([]string{"go", "run", "-v", "local.go"}).
 		Stdout(ctx)
 	if err != nil {
