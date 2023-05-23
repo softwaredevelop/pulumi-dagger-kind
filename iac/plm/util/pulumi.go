@@ -8,6 +8,26 @@ import (
 	"dagger.io/dagger"
 )
 
+func P(c *dagger.Client, id dagger.ContainerID) *dagger.Container {
+	return pulumiScratchInstall(c, id)
+}
+
+func pulumiScratchInstall(c *dagger.Client, id dagger.ContainerID) *dagger.Container {
+	pulumiInstall := c.
+		Container().
+		From("alpine").
+		WithEnvVariable("HOME", "/tmp").
+		WithExec([]string{"apk", "update"}).
+		WithExec([]string{"apk", "add",
+			"--no-cache",
+			"curl",
+		}).
+		WithExec([]string{"/bin/sh", "-c", "curl -fsSL https://get.pulumi.com | sh"})
+	return c.Container(dagger.ContainerOpts{ID: id}).
+		WithFile("/pulumi", pulumiInstall.File("/tmp/.pulumi/bin/pulumi")).
+		WithFile("/pulumi-language-go", pulumiInstall.File("/tmp/.pulumi/bin/pulumi-language-go"))
+}
+
 func PulumiGoInstall(c *dagger.Client, id dagger.ContainerID) *dagger.Container {
 	return pulumiGoInstall(c, id)
 }

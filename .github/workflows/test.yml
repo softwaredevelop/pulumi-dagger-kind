@@ -2,16 +2,11 @@
 name: Test
 
 on:
-  push:
-    branches:
-      - "main"
-    paths:
-      - "**test.go"
   pull_request:
     branches:
       - "main"
     paths:
-      - "**test.go"
+      - "**_test.go"
 
 concurrency:
   group: ${{ github.ref }}-${{ github.workflow }}
@@ -45,14 +40,10 @@ jobs:
         with:
           go-version: stable
 
-      - name: Download dependencies
+      - name: Download dependencies & run tests
         run: |
-          go get -u ./...
           go mod download
-        working-directory: ci
-
-      - name: Run tests
-        run: go test -v ./...
+          go test -v ./...
         working-directory: ci
 
   test-iac:
@@ -71,19 +62,10 @@ jobs:
         with:
           go-version: stable
 
-      - name: Download dependencies
+      - name: Download dependencies & run tests
         run: |
-          go get -u ./...
           go mod download
-        working-directory: iac/plm
-
-      - name: Run tests
-        run: go test -v ./...
-        env:
-          PULUMI_ACCESS_TOKEN: ${{ secrets.PULUMI_ACCESS_TOKEN }}
-          PULUMI_ORG_NAME: ${{ secrets.PULUMI_ORG_NAME }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          GITHUB_OWNER: ${{ github.repository_owner }}
+          go test -v ./...
         working-directory: iac/plm
 
   test-kind:
@@ -105,16 +87,12 @@ jobs:
         with:
           go-version: stable
 
-      - name: Download dependencies
-        run: |
-          go get -u ./...
-          go mod download
-        working-directory: iac/kind
-
       - name: Pulumi login
         run: pulumi login --local
         working-directory: iac/kind
 
-      - name: Run tests
-        run: go test -v -run TestInlineSourceKindCommand$
+      - name: Download dependencies & run tests
+        run: |
+          go mod download
+          go test -v ./...
         working-directory: iac/kind
