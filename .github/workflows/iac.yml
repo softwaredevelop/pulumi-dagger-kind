@@ -2,12 +2,6 @@
 name: Infrastructure
 
 on:
-  push:
-    branches:
-      - "main"
-    paths:
-      - "iac/**"
-      - "!**test.go"
   pull_request:
     branches:
       - "main"
@@ -46,26 +40,6 @@ jobs:
         uses: actions/setup-go@v4
         with:
           go-version: stable
-
-      - name: Download dependencies
-        run: |
-          go get -u ./...
-          go mod download
-        working-directory: iac/repo
-
-      - name: Download dependencies
-        run: |
-          go get -u ./...
-          go mod download
-        working-directory: iac/plm
-
-      - name: Run Infrastructure as inline code
-        run: go run -v .
-        env:
-          PULUMI_ACCESS_TOKEN: ${{ secrets.PULUMI_ACCESS_TOKEN }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          GITHUB_OWNER: ${{ github.repository_owner }}
-        working-directory: iac/plm
 
       - name: Download dependencies
         run: |
