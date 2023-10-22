@@ -33,13 +33,6 @@ func Actionlint(dir string, c *dagger.Client, id dagger.ContainerID, mountedDir 
 			"-verbose",
 			"iac.yml",
 		}).
-		WithExec([]string{"/actionlint",
-			"-debug",
-			"-pyflakes",
-			"-shellcheck",
-			"-verbose",
-			"test.yml",
-		}).
 		Stdout(ctx)
 	if err != nil {
 		return err
