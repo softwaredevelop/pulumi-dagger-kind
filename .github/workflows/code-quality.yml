@@ -1,10 +1,7 @@
 ---
-name: Linter
+name: Code-quality
 
 on:
-  push:
-    branches:
-      - "main"
   pull_request:
     branches:
       - "main"
@@ -17,7 +14,6 @@ jobs:
   skip-duplicate-actions:
     name: Skip Duplicate Actions
     runs-on: ubuntu-latest
-
     steps:
       - uses: fkirc/skip-duplicate-actions@master
         with:
@@ -25,8 +21,8 @@ jobs:
           cancel_others: true
           concurrent_skipping: never
 
-  linter:
-    name: Linter
+  code_quality:
+    name: Code quality
     runs-on: ubuntu-latest
 
     steps:
@@ -40,12 +36,9 @@ jobs:
         with:
           go-version: stable
 
-      - name: Download dependencies
+      - name: Download dependencies & run code quality
         run: |
-          go get -u ./...
           go mod download
-        working-directory: ci
-
-      - name: Run linters
-        run: go run -v main.go
-        working-directory: ci
+          go get dagger.io/dagger@latest
+          go run -v .
+        working-directory: cc
