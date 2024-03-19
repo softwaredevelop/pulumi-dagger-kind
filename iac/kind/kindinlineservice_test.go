@@ -38,7 +38,8 @@ func TestUpsertStackInlineSourceRefresh(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, prj)
 
-	s, err := auto.UpsertStackInlineSource(ctx, stackNameA, projectName, func(ctx *pulumi.Context) error {
+	s, err := auto.UpsertStackInlineSource(ctx, stackNameA, projectName, func(pCtx *pulumi.Context) error {
+		pCtx.Export("outputAA", pulumi.String("valueAA"))
 		return nil
 	}, auto.EnvVars(map[string]string{
 		"PULUMI_SKIP_UPDATE_CHECK": "true",
@@ -114,7 +115,8 @@ func TestUpsertStackInlineSourceRefresh(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, prj)
 
-	ss, err := auto.UpsertStackInlineSource(ctx, stackNameB, projectName, func(ctx *pulumi.Context) error {
+	ss, err := auto.UpsertStackInlineSource(ctx, stackNameB, projectName, func(pCtx *pulumi.Context) error {
+		pCtx.Export("outputBB", pulumi.String("valueBB"))
 		return nil
 	}, auto.EnvVars(map[string]string{
 		"PULUMI_SKIP_UPDATE_CHECK": "true",

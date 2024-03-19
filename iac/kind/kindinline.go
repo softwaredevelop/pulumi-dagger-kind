@@ -48,7 +48,8 @@ func main() {
 		panic(err)
 	}
 
-	stackA, err := auto.NewStackInlineSource(ctx, stackNameA, prj.Name.String(), func(ctx *pulumi.Context) error {
+	stackA, err := auto.NewStackInlineSource(ctx, stackNameA, prj.Name.String(), func(pCtx *pulumi.Context) error {
+		pCtx.Export("outputAA", pulumi.String("valueAA"))
 		return nil
 	}, auto.EnvVars(map[string]string{
 		"PULUMI_SKIP_UPDATE_CHECK": "true",
@@ -56,7 +57,8 @@ func main() {
 	}))
 	if err != nil && auto.IsCreateStack409Error(err) {
 		log.Println("stack " + stackNameA + " already exists")
-		stackA, err = auto.UpsertStackInlineSource(ctx, stackNameA, prj.Name.String(), func(ctx *pulumi.Context) error {
+		stackA, err = auto.UpsertStackInlineSource(ctx, stackNameA, prj.Name.String(), func(pCtx *pulumi.Context) error {
+			pCtx.Export("outputAA", pulumi.String("valueAA"))
 			return nil
 		}, auto.EnvVars(map[string]string{
 			"PULUMI_SKIP_UPDATE_CHECK": "true",
@@ -70,7 +72,8 @@ func main() {
 		panic(err)
 	}
 
-	stackB, err := auto.NewStackInlineSource(ctx, stackNameB, prj.Name.String(), func(ctx *pulumi.Context) error {
+	stackB, err := auto.NewStackInlineSource(ctx, stackNameB, prj.Name.String(), func(pCtx *pulumi.Context) error {
+		pCtx.Export("outputBB", pulumi.String("valueBB"))
 		return nil
 	}, auto.EnvVars(map[string]string{
 		"PULUMI_SKIP_UPDATE_CHECK": "true",
@@ -78,7 +81,8 @@ func main() {
 	}))
 	if err != nil && auto.IsCreateStack409Error(err) {
 		log.Println("stack " + stackNameB + " already exists")
-		stackA, err = auto.UpsertStackInlineSource(ctx, stackNameB, prj.Name.String(), func(ctx *pulumi.Context) error {
+		stackA, err = auto.UpsertStackInlineSource(ctx, stackNameB, prj.Name.String(), func(pCtx *pulumi.Context) error {
+			pCtx.Export("outputBB", pulumi.String("valueBB"))
 			return nil
 		}, auto.EnvVars(map[string]string{
 			"PULUMI_SKIP_UPDATE_CHECK": "true",
