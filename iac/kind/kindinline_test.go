@@ -36,7 +36,8 @@ func TestKind(t *testing.T) {
 		require.NoError(t, err)
 		require.NotNil(t, prj)
 
-		s, err := auto.NewStackInlineSource(ctx, stackName, prj.Name.String(), func(ctx *pulumi.Context) error {
+		s, err := auto.NewStackInlineSource(ctx, stackName, prj.Name.String(), func(pCtx *pulumi.Context) error {
+			pCtx.Export("outputAA", pulumi.String("valueAA"))
 			return nil
 		}, auto.EnvVars(map[string]string{
 			"PULUMI_SKIP_UPDATE_CHECK": "true",
@@ -76,7 +77,8 @@ func TestKind(t *testing.T) {
 		require.NoError(t, err)
 		require.NotNil(t, prj)
 
-		s, err := auto.NewStackInlineSource(ctx, stackName, prj.Name.String(), func(ctx *pulumi.Context) error {
+		s, err := auto.NewStackInlineSource(ctx, stackName, prj.Name.String(), func(pCtx *pulumi.Context) error {
+			pCtx.Export("outputAA", pulumi.String("valueAA"))
 			return nil
 		}, auto.EnvVars(map[string]string{
 			"PULUMI_SKIP_UPDATE_CHECK": "true",
@@ -127,7 +129,8 @@ func TestKind(t *testing.T) {
 		require.NoError(t, err)
 		require.NotNil(t, prj)
 
-		s, err := auto.NewStackInlineSource(ctx, stackName, prj.Name.String(), func(ctx *pulumi.Context) error {
+		s, err := auto.NewStackInlineSource(ctx, stackName, prj.Name.String(), func(pCtx *pulumi.Context) error {
+			pCtx.Export("outputAA", pulumi.String("valueAA"))
 			return nil
 		}, auto.EnvVars(map[string]string{
 			"PULUMI_SKIP_UPDATE_CHECK": "true",
@@ -168,7 +171,8 @@ func TestKind(t *testing.T) {
 		t.Parallel()
 
 		stackName := "testInlineSourceSecrets"
-		s, err := auto.NewStackInlineSource(ctx, stackName, projectName, func(ctx *pulumi.Context) error {
+		s, err := auto.NewStackInlineSource(ctx, stackName, projectName, func(pCtx *pulumi.Context) error {
+			pCtx.Export("outputAA", pulumi.String("valueAA"))
 			return nil
 		}, auto.EnvVars(map[string]string{
 			"PULUMI_SKIP_UPDATE_CHECK": "true",
@@ -217,7 +221,8 @@ func TestKind(t *testing.T) {
 		t.Parallel()
 
 		stackName := "testInlineSourceConfig"
-		s, err := auto.NewStackInlineSource(ctx, stackName, projectName, func(ctx *pulumi.Context) error {
+		s, err := auto.NewStackInlineSource(ctx, stackName, projectName, func(pCtx *pulumi.Context) error {
+			pCtx.Export("outputAA", pulumi.String("valueAA"))
 			return nil
 		}, auto.EnvVars(map[string]string{
 			"PULUMI_SKIP_UPDATE_CHECK": "true",
@@ -259,7 +264,8 @@ func TestKind(t *testing.T) {
 		stackName := "testInlineSourceWorkspaceEnvVars"
 		projectName := "testproject"
 
-		s, err := auto.NewStackInlineSource(ctx, stackName, projectName, func(ctx *pulumi.Context) error {
+		s, err := auto.NewStackInlineSource(ctx, stackName, projectName, func(pCtx *pulumi.Context) error {
+			pCtx.Export("outputAA", pulumi.String("valueAA"))
 			return nil
 		}, auto.EnvVars(map[string]string{
 			"PULUMI_SKIP_UPDATE_CHECK": "true",

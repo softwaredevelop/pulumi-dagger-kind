@@ -44,12 +44,14 @@ func TestUpsertStackInlineSource(t *testing.T) {
 	require.NotNil(t, qualifiedStackName)
 	require.Equal(t, orgName+"/"+projectName+"/"+stackName, qualifiedStackName)
 
-	s, err := auto.NewStackInlineSource(ctx, stackName, prj.Name.String(), func(ctx *pulumi.Context) error {
+	s, err := auto.NewStackInlineSource(ctx, stackName, prj.Name.String(), func(pCtx *pulumi.Context) error {
+		pCtx.Export("outputAA", pulumi.String("valueAA"))
 		return nil
 	})
 	if err != nil && auto.IsCreateStack409Error(err) {
 		log.Println("stack " + stackName + " already exists")
-		s, err = auto.UpsertStackInlineSource(ctx, stackName, prj.Name.String(), func(ctx *pulumi.Context) error {
+		s, err = auto.UpsertStackInlineSource(ctx, stackName, prj.Name.String(), func(pCtx *pulumi.Context) error {
+			pCtx.Export("outputAA", pulumi.String("valueAA"))
 			return nil
 		})
 	}
@@ -102,7 +104,8 @@ func TestNewStackInlineSourceDestroy(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, prj)
 
-	s, err := auto.NewStackInlineSource(ctx, stackName, prj.Name.String(), func(ctx *pulumi.Context) error {
+	s, err := auto.NewStackInlineSource(ctx, stackName, prj.Name.String(), func(pCtx *pulumi.Context) error {
+		pCtx.Export("outputAA", pulumi.String("valueAA"))
 		return nil
 	})
 	require.NoError(t, err)
@@ -169,7 +172,8 @@ func TestNewStackInlineSourceProject(t *testing.T) {
 	require.NotNil(t, qualifiedStackName)
 	require.Equal(t, orgName+"/"+projectName+"/"+stackName, qualifiedStackName)
 
-	s, err := auto.NewStackInlineSource(ctx, stackName, prj.Name.String(), func(ctx *pulumi.Context) error {
+	s, err := auto.NewStackInlineSource(ctx, stackName, prj.Name.String(), func(pCtx *pulumi.Context) error {
+		pCtx.Export("outputAA", pulumi.String("valueAA"))
 		return nil
 	})
 	require.NoError(t, err)
@@ -219,7 +223,8 @@ func TestNewStackInlineSourceSecrets(t *testing.T) {
 	stackName := "testInlineSourceSecrets"
 	projectName := "testproject"
 
-	s, err := auto.NewStackInlineSource(ctx, stackName, projectName, func(ctx *pulumi.Context) error {
+	s, err := auto.NewStackInlineSource(ctx, stackName, projectName, func(pCtx *pulumi.Context) error {
+		pCtx.Export("outputAA", pulumi.String("valueAA"))
 		return nil
 	}, auto.SecretsProvider("passphrase"))
 	require.NoError(t, err)
@@ -271,7 +276,8 @@ func TestNewStackInlineSourceConfig(t *testing.T) {
 	stackName := "testInlineSourceConfig"
 	projectName := "testproject"
 
-	s, err := auto.NewStackInlineSource(ctx, stackName, projectName, func(ctx *pulumi.Context) error {
+	s, err := auto.NewStackInlineSource(ctx, stackName, projectName, func(pCtx *pulumi.Context) error {
+		pCtx.Export("outputAA", pulumi.String("valueAA"))
 		return nil
 	})
 	require.NoError(t, err)
@@ -313,7 +319,8 @@ func TestNewStackInlineSourceWorkspaceEnvVars(t *testing.T) {
 	stackName := "testInlineSourceWorkspaceEnvVars"
 	projectName := "testproject"
 
-	s, err := auto.NewStackInlineSource(ctx, stackName, projectName, func(ctx *pulumi.Context) error {
+	s, err := auto.NewStackInlineSource(ctx, stackName, projectName, func(pCtx *pulumi.Context) error {
+		pCtx.Export("outputAA", pulumi.String("valueAA"))
 		return nil
 	})
 	require.NoError(t, err)

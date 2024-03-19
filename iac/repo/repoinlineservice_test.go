@@ -42,7 +42,8 @@ func TestUpsertStackInlineSourceRefresh(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, prj)
 
-	s, err := auto.UpsertStackInlineSource(ctx, stackNameA, prj.Name.String(), func(ctx *pulumi.Context) error {
+	s, err := auto.UpsertStackInlineSource(ctx, stackNameA, prj.Name.String(), func(pCtx *pulumi.Context) error {
+		pCtx.Export("outputAA", pulumi.String("valueAA"))
 		return nil
 	})
 
@@ -115,7 +116,8 @@ func TestUpsertStackInlineSourceRefresh(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, prj)
 
-	ss, err := auto.UpsertStackInlineSource(ctx, stackNameB, prj.Name.String(), func(ctx *pulumi.Context) error {
+	ss, err := auto.UpsertStackInlineSource(ctx, stackNameB, prj.Name.String(), func(pCtx *pulumi.Context) error {
+		pCtx.Export("outputBB", pulumi.String("valueBB"))
 		return nil
 	})
 	require.NoError(t, err)
