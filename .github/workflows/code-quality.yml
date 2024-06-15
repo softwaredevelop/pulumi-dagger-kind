@@ -24,7 +24,6 @@ jobs:
   code_quality:
     name: Code quality
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -36,9 +35,16 @@ jobs:
         with:
           go-version: stable
 
-      - name: Download dependencies & run code quality
+      - name: Download dependencies
         run: |
           go mod download
-          go get dagger.io/dagger@latest
-          go run -v .
         working-directory: cc
+
+      - name: Run Dagger
+        uses: dagger/dagger-for-github@v5
+        with:
+          args: go run -v .
+          dagger-flags: --debug
+          verb: run
+          version: latest
+          workdir: cc
