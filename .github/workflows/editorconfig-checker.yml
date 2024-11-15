@@ -33,7 +33,7 @@ jobs:
           fetch-depth: 0
 
       - name: Call Dagger Function
-        uses: dagger/dagger-for-github@v6
+        uses: dagger/dagger-for-github@v7
         with:
           args: check --source=. stdout
           module: github.com/softwaredevelop/daggerverse/editorconfig@main
